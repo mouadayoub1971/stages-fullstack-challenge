@@ -86,8 +86,8 @@ function ImageUpload() {
       )}
 
       {uploadedImage && (
-        <div style={{ 
-          padding: '0.8rem', 
+        <div style={{
+          padding: '0.8rem',
           backgroundColor: '#f8f9fa',
           borderRadius: '4px',
           marginBottom: '1rem',
@@ -96,6 +96,22 @@ function ImageUpload() {
           <strong>Détails :</strong>
           <div>Path: {uploadedImage.path}</div>
           <div>Size: {(uploadedImage.size / 1024).toFixed(2)} KB</div>
+
+          {uploadedImage.url && (
+            <div style={{ marginTop: '1rem' }}>
+              <img
+                src={`http://localhost:8000${uploadedImage.url}`}
+                alt="Uploaded preview"
+                loading="lazy"
+                style={{
+                  maxWidth: '100%',
+                  height: 'auto',
+                  borderRadius: '4px',
+                  border: '1px solid #ddd'
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
 
