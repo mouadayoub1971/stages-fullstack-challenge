@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Article;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class ArticleController extends Controller
 {
@@ -13,8 +14,13 @@ class ArticleController extends Controller
      */
     public function index(Request $request)
     {
-        // Use eager loading to prevent N+1 queries
-        $articles = Article::with(['author', 'comments'])->get();
+        // Cache article list for 1 minute (60 seconds)
+        $cacheKey = 'articles_list';
+
+        $articles = Cache::remember($cacheKey, 60, function () {
+            // Use eager loading to prevent N+1 queries
+            return Article::with(['author', 'comments'])->get();
+        });
 
         $articles = $articles->map(function ($article) use ($request) {
             if ($request->has('performance_test')) {
@@ -110,6 +116,10 @@ class ArticleController extends Controller
             'published_at' => now(),
         ]);
 
+        // Invalidate cache
+        Cache::forget('articles_list');
+        Cache::forget('blog_stats');
+
         return response()->json($article, 201);
     }
 
@@ -127,6 +137,10 @@ class ArticleController extends Controller
 
         $article->update($validated);
 
+        // Invalidate cache
+        Cache::forget('articles_list');
+        Cache::forget('blog_stats');
+
         return response()->json($article);
     }
 
@@ -137,6 +151,10 @@ class ArticleController extends Controller
     {
         $article = Article::findOrFail($id);
         $article->delete();
+
+        // Invalidate cache
+        Cache::forget('articles_list');
+        Cache::forget('blog_stats');
 
         return response()->json(['message' => 'Article deleted successfully']);
     }
